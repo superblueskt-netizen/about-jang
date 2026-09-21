@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>장성혁 — 다시 앉는 사람</title>
+<meta name="description" content="장성혁의 진로 소개. 날짜 붙은 장면과 기록에서 직접 센 숫자로 쓴 공개 페이지." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --ground:#f4f6f6;
+    --surface:#ffffff;
+    --ink:#16212b;
+    --ink-soft:#3d4f5a;
+    --muted:#63767c;
+    --line:#dde5e5;
+    --line-strong:#c3d2d2;
+    --accent:#12706b;
+    --accent-soft:#e3f0ee;
+    --accent-ink:#0b4f4b;
+    --flag:#9a5b28;
+    --flag-soft:#f6ecdf;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#0f161a;
+      --surface:#161f26;
+      --ink:#e6eded;
+      --ink-soft:#bccbcc;
+      --muted:#8ba0a3;
+      --line:#25333a;
+      --line-strong:#35474f;
+      --accent:#54b9b0;
+      --accent-soft:#16302f;
+      --accent-ink:#8ad3cb;
+      --flag:#d49a63;
+      --flag-soft:#2b2318;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#0f161a;
+    --surface:#161f26;
+    --ink:#e6eded;
+    --ink-soft:#bccbcc;
+    --muted:#8ba0a3;
+    --line:#25333a;
+    --line-strong:#35474f;
+    --accent:#54b9b0;
+    --accent-soft:#16302f;
+    --accent-ink:#8ad3cb;
+    --flag:#d49a63;
+    --flag-soft:#2b2318;
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    background:var(--ground);
+    color:var(--ink);
+    font-family:"Noto Sans KR","Apple SD Gothic Neo",system-ui,sans-serif;
+    font-size:16px;
+    line-height:1.75;
+    -webkit-font-smoothing:antialiased;
+    word-break:keep-all;      /* 한국어는 어절 단위로만 줄을 바꾼다 */
+    overflow-wrap:break-word;
+  }
+  .wrap{max-width:720px;margin:0 auto;padding-inline:20px;padding-block:0;}
+  a{color:var(--accent-ink);text-underline-offset:3px;}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px;}
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;}
+
+  /* ── 첫 화면 ───────────────────────────────── */
+  header.hero{
+    border-bottom:1px solid var(--line);
+    background:var(--surface);
+  }
+  .hero-in{display:flex;flex-direction:column;gap:22px;padding-block:58px 44px;}
+  .name{
+    font-family:"Gowun Batang",serif;
+    font-size:clamp(34px,7vw,46px);
+    line-height:1.15;letter-spacing:-.01em;margin:0;
+    text-wrap:balance;
+  }
+  .name small{display:block;font-family:"IBM Plex Mono",monospace;font-size:13px;letter-spacing:.14em;
+    color:var(--muted);font-weight:400;margin-bottom:14px;text-transform:uppercase;}
+  .oneline{
+    font-family:"Gowun Batang",serif;
+    font-size:clamp(19px,3.4vw,23px);
+    line-height:1.6;color:var(--ink-soft);margin:0;max-width:30ch;text-wrap:balance;
+  }
+  .oneline b{color:var(--accent-ink);font-weight:700;}
+  nav.entry{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+  nav.entry a{
+    font-size:13.5px;text-decoration:none;color:var(--ink-soft);
+    border:1px solid var(--line-strong);border-radius:999px;padding:6px 14px;
+    background:var(--ground);
+  }
+  nav.entry a:hover{border-color:var(--accent);color:var(--accent-ink);}
+
+  /* ── 섹션 공통 ─────────────────────────────── */
+  section{padding-block:48px;border-bottom:1px solid var(--line);}
+  section:last-of-type{border-bottom:none;}
+  h2{
+    font-family:"Gowun Batang",serif;font-size:25px;line-height:1.35;margin:0 0 6px;
+    text-wrap:balance;
+  }
+  .sec-note{font-size:13.5px;color:var(--muted);margin:0 0 26px;}
+
+  /* ── 이야기 ────────────────────────────────── */
+  .story p{margin:0 0 18px;max-width:64ch;}
+  .story p.lead{font-family:"Gowun Batang",serif;font-size:19px;line-height:1.75;color:var(--ink);}
+  .scene{
+    display:grid;grid-template-columns:104px 1fr;gap:0 18px;
+    margin:0 0 20px;padding-left:0;
+  }
+  .scene .when{
+    font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--muted);
+    padding-top:5px;line-height:1.45;word-break:keep-all;
+  }
+  .scene .what{margin:0;max-width:56ch;}
+  .scene .what q{font-style:normal;color:var(--ink);
+    border-bottom:1px solid var(--line-strong);padding-bottom:1px;}
+  .cap{
+    display:inline-block;font-size:11.5px;letter-spacing:.02em;
+    background:var(--accent-soft);color:var(--accent-ink);
+    border-radius:3px;padding:2px 8px;margin-top:7px;font-weight:500;
+  }
+  @media (max-width:520px){
+    .scene{grid-template-columns:1fr;gap:2px;}
+    .scene .when{padding-top:0;}
+  }
+
+  /* ── 숫자 ──────────────────────────────────── */
+  .figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:1px;
+    background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden;}
+  .fig{background:var(--surface);padding:16px 16px 14px;}
+  .fig .v{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
+    font-size:27px;font-weight:500;line-height:1.1;color:var(--ink);}
+  .fig .v span.u{font-size:14px;color:var(--muted);margin-left:2px;}
+  .fig .k{font-size:13px;color:var(--ink-soft);margin-top:6px;line-height:1.45;}
+  .fig .src{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);margin-top:7px;letter-spacing:.02em;}
+  .pairing{
+    margin-top:22px;border-left:3px solid var(--accent);background:var(--accent-soft);
+    padding:14px 16px;border-radius:0 5px 5px 0;
+  }
+  .pairing p{margin:0;font-size:14.5px;color:var(--accent-ink);line-height:1.65;}
+  .pairing strong{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;}
+
+  /* ── 대표작 ────────────────────────────────── */
+  .work{border:1px solid var(--line-strong);border-radius:6px;background:var(--surface);
+    padding:20px 20px 18px;margin-bottom:14px;}
+  .work h3{margin:0 0 4px;font-size:17px;line-height:1.45;}
+  .work .meta{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--muted);
+    letter-spacing:.03em;margin-bottom:12px;}
+  .work p{margin:0 0 10px;font-size:14.5px;line-height:1.7;color:var(--ink-soft);max-width:58ch;}
+  .work .finding{font-size:14px;background:var(--ground);border-radius:4px;padding:11px 13px;
+    color:var(--ink);margin-bottom:10px;}
+  .work.empty{border-style:dashed;background:transparent;}
+  .work.empty h3{color:var(--muted);}
+  .slot{font-size:13.5px;color:var(--flag);background:var(--flag-soft);
+    border-radius:4px;padding:9px 12px;display:block;line-height:1.6;}
+
+  /* ── 목록 ──────────────────────────────────── */
+  ul.plain{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px;}
+  ul.plain li{display:grid;grid-template-columns:120px 1fr;gap:14px;font-size:14.5px;
+    padding-bottom:11px;border-bottom:1px solid var(--line);line-height:1.6;}
+  ul.plain li:last-child{border-bottom:none;padding-bottom:0;}
+  ul.plain .t{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);padding-top:3px;}
+  @media (max-width:520px){ul.plain li{grid-template-columns:1fr;gap:2px;}}
+
+  /* ── 연락 ──────────────────────────────────── */
+  footer{padding-block:38px 56px;}
+  .contact{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 16px;}
+  .contact .label{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.12em;
+    color:var(--muted);text-transform:uppercase;}
+  .contact a{font-size:16px;}
+  .fine{font-size:12.5px;color:var(--muted);margin-top:22px;line-height:1.7;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap hero-in">
+    <h1 class="name"><small>Jang Seonghyeok · 부산</small>장성혁</h1>
+    <p class="oneline">넘어진 다음 날 <b>같은 자리에 다시 앉는</b> 사람</p>
+    <nav class="entry" aria-label="이 페이지 안내">
+      <a href="#story">이야기</a>
+      <a href="#numbers">숫자</a>
+      <a href="#works">대표작</a>
+      <a href="#resume">이력</a>
+      <a href="#contact">연락</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<!-- ── 이야기 ──────────────────────────────── -->
+<section id="story" class="wrap story">
+  <h2>내 이야기</h2>
+  <p class="sec-note">첫 문장과 마지막 문장은 제가 제 기록에 직접 쓴 문장입니다. 나머지 날짜와 따옴표 안의 문장도 제 자전 기록과 리추얼 기록에서 그대로 가져왔습니다.</p>
+
+  <p class="lead">생각해보면 참 오래 아팠고 그로 인해 포기한 것도 많았는데, 일단 살아남았고 더 잘 살고 싶다.<br><span class="mono" style="font-size:12.5px;color:var(--muted);">— 2026.09.09, 내 기록에서</span></p>
+
+  <div class="scene">
+    <div class="when">2023.07.28</div>
+    <p class="what">사촌형의 로스터리에서 쓰러졌다. 프랑스에서 10년을 살다 잠시 쉬러 들어온 참이었다. 그날 밤 첫 수술을 받았고 이후 두 번 더 수술대에 올랐다. 부산의 재활병원 3층으로 옮겨져 2년을 보냈다. 걷는 법과 말하는 법을 처음부터 다시 배웠다.</p>
+  </div>
+
+  <p>병원에서 제일 견디기 어려웠던 것은 몸이 아니었다. 계속 기다려지는 쪽에 있는 것이었다. '사과'를 발음하고 칭찬받는 일이 부끄러웠다. 다시 일어난 날은 내가 주는 쪽으로 돌아선 날이었다.</p>
+
+  <div class="scene">
+    <div class="when">재활병원 3층</div>
+    <p class="what">복도 끝의 할머니에게 한글 발음을 가르치기 시작했다. 나도 아직 말이 제대로 안 되던 때였다. 입술소리부터 순서대로 갔다. ㅁ, ㅂ. 'ㅊ'은 맨 마지막이었고 그건 나도 안 돼서 같이 배웠다. 그가 끝내 말한 문장은 자기 이름이었다.
+    <span class="cap">대인관계력</span></p>
+  </div>
+
+  <div class="scene">
+    <div class="when">2025 봄 —<br>2026 봄</div>
+    <p class="what">퇴원한 뒤 사촌형의 가게 일을 도우면서 사회복지 학점은행 과정을 시작했고, 정보처리기사를 땄다. 손이 키보드로 돌아오는 데 걸린 시간이었다.
+    <span class="cap">자기동기력</span></p>
+  </div>
+
+  <p class="lead">2026년 8월, 부산에서 다시 강의실에 앉았다.</p>
+
+  <p>여기서부터는 매일 기록을 남겼기 때문에 날짜와 문장이 그대로 남아 있다.</p>
+
+  <div class="scene">
+    <div class="when">08.26 화</div>
+    <p class="what">수업 중에 저혈당 쇼크가 왔다. 버티지 않고 즉시 멈춰서 휴식·수분·당분을 챙긴 뒤 자리로 돌아왔다. 그날 기록에 이렇게 적었다. <q>몸 상태에 관해서 누구보다 객관적으로, 즉각적으로 파악하고 관리한다.</q> 나는 30분 먼저 도착해 둔다. 부지런해서가 아니라 <q>늘 안 좋을 때를 대비한다</q>는 쪽에 가깝다.
+    <span class="cap">자기조절력</span></p>
+  </div>
+
+  <div class="scene">
+    <div class="when">08.18 →<br>08.19</div>
+    <p class="what">엘리베이터에서 인사했지만 아무도 받아주지 않았다. 기록에는 <q>하지만 금세 까먹었다</q>고 적혀 있다. 다음 날 이렇게 다시 적었다. <q>인사란 사람과 사람 사이에 오가는 가장 첫 신호다. 네트워크처럼 먼저 이렇게 연결이 생겨야 뭐든 주고받을 수 있다.</q> 상대의 반응이 아니라 내 태도가 기준이다.
+    <span class="cap">대인관계력</span></p>
+  </div>
+
+  <div class="scene">
+    <div class="when">09.01 →<br>09.04</div>
+    <p class="what">수업이 버거워 자괴감에 빠져 있던 주였다. 09.01에 방법을 바꿨다. <q>모르는 걸 오히려 AI로 리버스 엔지니어링?</q> 09.04에는 포기를 생각하다가 <q>5초만 더 좋은 쪽으로 생각하고 끝까지 수업에 참여했다.</q> 그날 나에게 남긴 말은 이것뿐이다. <q>아 너무 칭찬한다. 잘했다.</q> 그날 내가 바꾼 것은 '모르면 그만둔다'를 '모르면 뜯어 본다'로 바꾼 것이다.
+    <span class="cap">자기동기력</span></p>
+  </div>
+
+  <p><span class="mono" data-stat="weeks">6.0</span>주 동안 동료들에게 받은 장점과 감사는 <span class="mono" data-stat="peer_feedback">194</span>건이었다. 가장 자주 돌아온 말은 먼저 인사한다, 30분 먼저 와 있다, 막혀도 끝까지 파고든다 세 가지였다. 내가 나를 본 말과 남이 본 말이 겹치는 자리가 거기였다.</p>
+
+  <p>앞으로 하고 싶은 일은 혼자 굴러가는 일을 만드는 것이다. AI를 지렛대 삼아 1인 창업으로 시작하고, 장소에 묶이지 않고 일하는 쪽으로 가려고 한다. 30분 먼저 준비하는 습관과, 막히면 뜯어 보는 방식과, 먼저 말을 거는 태도가 혼자 일하는 사람에게 필요한 세 가지라고 생각한다.</p>
+
+  <p class="lead">더 열심히 할 필요도 없다. 오늘 만큼만.</p>
+</section>
+
+<!-- ── 숫자 ────────────────────────────────── -->
+<section id="numbers" class="wrap">
+  <h2>말 대신 숫자</h2>
+  <p class="sec-note">
+    기간 <span class="mono" data-stat="period_start">2026-08-11</span> ~ <span class="mono" data-stat="period_end">2026-09-21</span>
+    · 아래 숫자는 장치가 「리추얼 기록」·「내 출석 기록」·「내 제출 현황」 세 파일에서 직접 세어 넣은 값입니다. 손으로 고치지 않았습니다. 칸마다 어느 파일에서 나왔는지 적어 두었습니다.
+  </p>
+
+  <div class="figs">
+    <div class="fig">
+      <div class="v"><span data-stat="total_days">26</span></div>
+      <div class="k">기록을 남긴 날</div>
+      <div class="src">출처 · 리추얼 기록</div>
+    </div>
+    <div class="fig">
+      <div class="v"><span data-stat="morning_days">26</span> <span class="u">/</span> <span data-stat="evening_days">25</span></div>
+      <div class="k">아침 기록 / 마무리 기록</div>
+      <div class="src">출처 · 리추얼 기록</div>
+    </div>
+    <div class="fig">
+      <div class="v"><span data-stat="act_rate">83</span><span class="u">%</span></div>
+      <div class="k">그날 정한 강점을 지킨 날<br>(<span class="mono" data-stat="act_rated">24</span>일 중 <span class="mono" data-stat="act_done">19</span>일 실천, <span class="mono" data-stat="act_partial">1</span>일 일부)</div>
+      <div class="src">출처 · 리추얼 기록</div>
+    </div>
+    <div class="fig">
+      <div class="v"><span data-stat="bounce_rate">100</span><span class="u">%</span></div>
+      <div class="k">못 지킨 다음 기록일에<br>다시 지킨 비율 (<span class="mono" data-stat="bounce_total">4</span>번 중 <span class="mono" data-stat="bounce_back">4</span>번)</div>
+      <div class="src">출처 · 리추얼 기록</div>
+    </div>
+    <div class="fig">
+      <div class="v"><span data-stat="longest_streak">14</span></div>
+      <div class="k">가장 길게 이어 간 연속 기록(일)</div>
+      <div class="src">출처 · 리추얼 기록</div>
+    </div>
+    <div class="fig">
+      <div class="v"><span data-stat="peer_feedback">194</span></div>
+      <div class="k">동료에게 받은 장점·감사(건)</div>
+      <div class="src">출처 · 리추얼 기록</div>
+    </div>
+    <div class="fig">
+      <div class="v"><span data-stat="prg_approved">11</span> <span class="u">/</span> <span data-stat="prg_total">13</span></div>
+      <div class="k">마스터 승인을 받은 과제<br>(13개 중 11개, 12번째 진행 중)</div>
+      <div class="src">출처 · 내 제출 현황</div>
+    </div>
+    <div class="fig">
+      <div class="v"><span data-stat="prg_week">5</span><span class="u">주차</span></div>
+      <div class="k">과정에서 지금 서 있는 자리</div>
+      <div class="src">출처 · 내 제출 현황</div>
+    </div>
+    <div class="fig">
+      <div class="v"><span data-stat="att_rate">90</span><span class="u">%</span></div>
+      <div class="k">출석 (수업일 <span class="mono" data-stat="att_class_days">29</span>일 중 <span class="mono" data-stat="att_present">26</span>일)<br>지각 <span class="mono" data-stat="att_late">0</span> · 병가 <span class="mono" data-stat="att_sick">3</span> · 무단결석 <span class="mono" data-stat="att_absent">0</span></div>
+      <div class="src">출처 · 내 출석 기록</div>
+    </div>
+  </div>
+
+  <div class="pairing">
+    <p><strong>회복 <span data-stat="bounce_back">4</span>/<span data-stat="bounce_total">4</span> (<span data-stat="bounce_rate">100</span>%)</strong> — 이 숫자는 위 이야기의 08.26(저혈당으로 수업이 끊긴 날)과 09.04(포기를 생각한 날)에 붙어 있는 숫자입니다. 못 한 날을 지우지 않고 <strong><span data-stat="act_missed">4</span></strong>번 그대로 남겨 두었기 때문에 셀 수 있는 값입니다.</p>
+  </div>
+
+  <p class="sec-note" style="margin-top:22px;margin-bottom:0;">
+    기록은 2026-08-11에 시작해 과정이 끝날 때까지 이어집니다. 위 숫자는 <span class="mono" data-stat="period_end">2026-09-21</span>까지 쌓인 <span class="mono" data-stat="weeks">6.0</span>주분이며, 새 기록을 넣고 장치를 한 번 돌리면 이 자리의 숫자가 다시 계산됩니다.
+  </p>
+</section>
+
+<!-- ── 대표작 ──────────────────────────────── -->
+<section id="works" class="wrap">
+  <h2>대표작</h2>
+  <p class="sec-note">두 자리를 둡니다. 하나는 끝났고, 하나는 채워지는 중입니다.</p>
+
+  <article class="work">
+    <h3>부산 도시철도 접근성과 행정동 인구 변화</h3>
+    <div class="meta">2026.09 · 논문 13쪽 + 재현 패키지 · 단독</div>
+    <p>부산 205개 행정동을 표본으로, 도시철도역 접근성이 높은 동일수록 2021.6~2026.6 인구 감소율이 작은지 검증했습니다. 가설·지표·기준을 자료를 열기 전에 먼저 고정해 두고 시작했습니다.</p>
+    <div class="finding"><strong>결과: 가설 기각.</strong> 주 검정 Spearman ρ = −0.125 (p = 0.075)로 사전에 정한 유의 기준에 못 미쳤습니다. 역 개수와 역세권 여부로 다시 재면 가설 방향에서 유의했지만, 그것은 주 검정이 아니므로 결론을 바꾸지 않았습니다.</p>
+    <p>기대와 다른 결과를 그대로 적었고, 누구나 같은 결과를 다시 낼 수 있도록 자료·코드·절차를 재현 패키지로 함께 냈습니다.</p>
+  </article>
+
+  <article class="work empty">
+    <h3>13번 과제 앱 — 논문 결과를 실제로 쓰는 공개 앱</h3>
+    <div class="meta">예정 · 착수 마스터 최종 승인 직후 · 완료 목표 2026-11-14(과정 수료일) 전</div>
+    <span class="slot">이 자리는 비워 둡니다. 13번 과제를 마친 뒤 결과물 주소와 설명을 이 자리에 채웁니다. 예정일은 위에 적어 두었습니다. 위 논문의 결론이 가설 기각이므로, 앱도 "접근성이 인구를 지킨다"가 아니라 그 설명이 성립하지 않는다는 결과 위에서 만듭니다.</span>
+  </article>
+</section>
+
+<!-- ── 그 밖의 작업 ───────────────────────── -->
+<section id="other" class="wrap">
+  <h2>그 밖에 만든 것</h2>
+  <p class="sec-note">모두 로그인 없이 첫 화면이 열립니다.</p>
+  <ul class="plain">
+    <li><span class="t">2026.09</span><span>패스키(WebAuthn)로 잠근 소개 페이지 — 비밀번호 없이 공개키로만 인증. 남의 패스키·이미 쓴 질문·로그아웃 뒤 재사용을 모두 거절하는 것을 요청·응답으로 확인(자동 검사 32/32). <a href="https://jang-portfolio-passkey.vercel.app/">열어 보기</a></span></li>
+    <li><span class="t">2026.09</span><span>플랜두씨 다이어리 — 계획·실행·회고를 한 줄로 잇는 기록 앱. 계정마다 자기 자료만 보이도록 데이터베이스 정책으로 격리하고, 남의 자료 요청이 실제로 막히는 장면을 기록으로 남겼습니다.</span></li>
+    <li><span class="t">2026.08</span><span>GALAGA 30S — 브라우저에서 바로 도는 슈팅 게임.</span></li>
+    <li><span class="t">2026.09</span><span>보안 경보 자동화 — 파이썬 전송기에서 n8n을 거쳐 메신저와 게시판으로 경보를 보내는 흐름.</span></li>
+  </ul>
+</section>
+
+<!-- ── 이력 ────────────────────────────────── -->
+<section id="resume" class="wrap">
+  <h2>이력</h2>
+  <p class="sec-note">자세한 내용은 이력서·자기소개서·경력기술서 문서로 따로 있습니다.</p>
+  <ul class="plain">
+    <li><span class="t">학위</span><span>컴퓨터공학 학사 · 도시학(urbanisme) 학사, 프랑스 그르노블 · 외국어로서의 한국어교육 학사</span></li>
+    <li><span class="t">자격</span><span>정보처리기사 · 한국어교원 2급</span></li>
+    <li><span class="t">진행 중</span><span>사회복지 학사 과정(실습 이수만 남음) — 수료 시 사회복지사 2급</span></li>
+    <li><span class="t">교육</span><span>2026.08~2026.11 부산 소재 AI·웹 개발 과정 수강 중 (수료 예정 2026-11-14)</span></li>
+    <li><span class="t">2014~2023</span><span>프랑스 그르노블 거주 — 학업과 한국어 교습</span></li>
+    <li><span class="t">2023~2025</span><span>치료 및 재활</span></li>
+    <li><span class="t">2025~2026</span><span>로스터리 업무 지원 · 사회복지 학점은행 과정 · 정보처리기사 취득</span></li>
+    <li><span class="t">병역</span><span>2011 입대, 병장 만기전역</span></li>
+    <li><span class="t">언어</span><span>한국어(모국어) · 프랑스어(현지 10년 거주·학위 취득)</span></li>
+  </ul>
+</section>
+
+</main>
+
+<footer class="wrap" id="contact">
+  <div class="contact">
+    <span class="label">연락</span>
+    <a href="mailto:superblueskt@gmail.com">superblueskt@gmail.com</a>
+  </div>
+  <p class="fine">
+    이 페이지에는 로그인·방문자 통계·댓글이 없습니다. 본인 외 다른 사람의 실명은 넣지 않았습니다.<br>
+    숫자는 기록 파일에서 장치가 다시 세어 넣습니다 · 기준일 <span class="mono" data-stat="based_on">2026-09-21</span>
+  </p>
+</footer>
+
+</body>
+</html>
