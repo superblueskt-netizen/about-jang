@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>역세권이면 괜찮을까</title>
+<meta name="description" content="부산 205개 행정동 자료로 '역세권이니 괜찮겠지'를 검증하는 앱. 논문 「도시철도 접근성은 축소도시의 인구 감소를 늦추는가」의 결과를 그대로 씁니다." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Serif+KR:wght@500;700&display=swap">
+<style>
+  :root{
+    --ground:#f4f2ed;
+    --surface:#fffdf9;
+    --sunk:#efece5;
+    --ink:#1b1e22;
+    --ink-soft:#4b5158;
+    --muted:#807b72;
+    --line:#e3ddd3;
+    --line-hard:#cdc5b7;
+    --brick:#a8442a;       /* 기각 · 주의 */
+    --brick-bg:#f8ebe5;
+    --teal:#2b6b62;        /* 유의 */
+    --teal-bg:#e4efec;
+    --slate:#5a6472;       /* 판단 유보 */
+    --slate-bg:#e9ecf0;
+    --dot:#9aa3ad;
+    --dot-pick:#a8442a;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#14161a;
+      --surface:#1c1f24;
+      --sunk:#23272d;
+      --ink:#eceae5;
+      --ink-soft:#c2c6cb;
+      --muted:#8f938f;
+      --line:#2c3138;
+      --line-hard:#3d444d;
+      --brick:#e08a6c;
+      --brick-bg:#33211b;
+      --teal:#6dbdaf;
+      --teal-bg:#17302c;
+      --slate:#9aa6b6;
+      --slate-bg:#242a32;
+      --dot:#5d666f;
+      --dot-pick:#e08a6c;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#14161a; --surface:#1c1f24; --sunk:#23272d;
+    --ink:#eceae5; --ink-soft:#c2c6cb; --muted:#8f938f;
+    --line:#2c3138; --line-hard:#3d444d;
+    --brick:#e08a6c; --brick-bg:#33211b;
+    --teal:#6dbdaf; --teal-bg:#17302c;
+    --slate:#9aa6b6; --slate-bg:#242a32;
+    --dot:#5d666f; --dot-pick:#e08a6c;
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:"IBM Plex Sans KR","Apple SD Gothic Neo",system-ui,sans-serif;
+    font-size:15.5px; line-height:1.7; -webkit-font-smoothing:antialiased;
+    word-break:keep-all; overflow-wrap:break-word;
+  }
+  .wrap{max-width:840px;margin:0 auto;padding-inline:20px;}
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;}
+  a{color:var(--teal);}
+  :focus-visible{outline:2px solid var(--brick);outline-offset:2px;border-radius:3px;}
+
+  /* 첫 화면 */
+  header{background:var(--surface);border-bottom:1px solid var(--line);}
+  .hero{padding-block:44px 34px;display:flex;flex-direction:column;gap:18px;}
+  .src{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.1em;
+    color:var(--muted);text-transform:uppercase;}
+  h1{font-family:"Noto Serif KR",serif;font-size:clamp(25px,4.6vw,34px);line-height:1.3;
+    margin:0;letter-spacing:-.01em;text-wrap:balance;}
+  .one-liner{margin:0;font-size:clamp(15.5px,2.2vw,17px);line-height:1.75;color:var(--ink-soft);
+    max-width:62ch;border-left:3px solid var(--brick);padding-left:16px;}
+  .one-liner b{color:var(--ink);font-weight:600;}
+  .paper-ref{font-size:12.5px;color:var(--muted);margin:0;}
+
+  /* 단계 */
+  .step{padding-block:38px;border-bottom:1px solid var(--line);}
+  .step:last-of-type{border-bottom:none;}
+  .step-head{display:flex;gap:14px;align-items:baseline;margin-bottom:6px;}
+  .step-no{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;
+    color:var(--surface);background:var(--ink);border-radius:3px;
+    padding:3px 8px;flex:none;letter-spacing:.04em;}
+  h2{font-size:20px;line-height:1.4;margin:0;font-weight:600;text-wrap:balance;}
+  .step-note{font-size:13.5px;color:var(--muted);margin:0 0 22px 46px;max-width:60ch;}
+  @media (max-width:560px){ .step-note{margin-left:0;} }
+
+  /* 입력 */
+  .pick{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:18px;}
+  .field{display:flex;flex-direction:column;gap:5px;flex:1 1 220px;min-width:0;}
+  .field label{font-size:12.5px;color:var(--ink-soft);font-weight:500;}
+  input[type=text],select{
+    font-family:inherit;font-size:15px;color:var(--ink);background:var(--surface);
+    border:1px solid var(--line-hard);border-radius:5px;padding:9px 11px;width:100%;
+  }
+  button{
+    font-family:inherit;font-size:13.5px;font-weight:500;cursor:pointer;
+    color:var(--ink);background:var(--sunk);border:1px solid var(--line-hard);
+    border-radius:5px;padding:9px 14px;
+  }
+  button:hover{border-color:var(--ink-soft);}
+  button.on{background:var(--ink);color:var(--surface);border-color:var(--ink);}
+  .msg{font-size:13px;color:var(--brick);margin:-8px 0 14px;min-height:0;}
+  .msg:empty{display:none;}
+
+  /* 카드 */
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:7px;
+    padding:20px;margin-bottom:14px;}
+  .card h3{margin:0 0 3px;font-size:17px;font-weight:600;}
+  .card .sub{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--muted);
+    letter-spacing:.03em;margin-bottom:16px;}
+  .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:1px;
+    background:var(--line);border:1px solid var(--line);border-radius:5px;overflow:hidden;
+    margin-bottom:16px;}
+  .facts.f3{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .fact{background:var(--surface);padding:11px 12px;min-width:0;}
+  .fact .v{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
+    font-size:20px;font-weight:500;line-height:1.15;}
+  .fact .v .u{font-size:12px;color:var(--muted);margin-left:1px;}
+  .fact .k{font-size:11.5px;color:var(--muted);margin-top:4px;line-height:1.4;}
+
+  .verdict{border-radius:6px;padding:14px 16px;margin-bottom:12px;font-size:14.5px;line-height:1.7;}
+  .verdict .tag{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:11px;
+    font-weight:600;letter-spacing:.05em;padding:2px 7px;border-radius:3px;margin-bottom:7px;}
+  .v-ok{background:var(--teal-bg);} .v-ok .tag{background:var(--teal);color:#fff;}
+  .v-no{background:var(--brick-bg);} .v-no .tag{background:var(--brick);color:#fff;}
+  .v-hold{background:var(--slate-bg);} .v-hold .tag{background:var(--slate);color:#fff;}
+  .verdict p{margin:0 0 7px;} .verdict p:last-child{margin-bottom:0;}
+  .verdict strong{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;}
+
+  /* 척도 3종 */
+  .tabs{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px;}
+  .scale-box{background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:18px;}
+  .scale-head{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;
+    justify-content:space-between;margin-bottom:14px;}
+  .scale-head .t{font-size:15.5px;font-weight:600;}
+  .stat{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--ink-soft);}
+  .pill{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;
+    letter-spacing:.05em;padding:2px 7px;border-radius:3px;margin-left:7px;vertical-align:1px;}
+  .pill-ok{background:var(--teal);color:#fff;} .pill-no{background:var(--brick);color:#fff;}
+  .plot-wrap{overflow-x:auto;}
+  svg{display:block;max-width:100%;height:auto;}
+  .axis-t{font-family:"IBM Plex Mono",monospace;font-size:10px;fill:var(--muted);}
+  .bar{fill:var(--dot);} .bar-hi{fill:var(--teal);}
+  .read{font-size:13.5px;color:var(--ink-soft);margin:14px 0 0;line-height:1.7;}
+  .read b{color:var(--ink);}
+
+  /* 비교 */
+  .vs{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media (max-width:620px){ .vs{grid-template-columns:1fr;} }
+  .vs .card{margin-bottom:0;}
+  .gap-note{background:var(--sunk);border-radius:6px;padding:14px 16px;font-size:14px;
+    line-height:1.7;margin-top:12px;color:var(--ink-soft);}
+  .gap-note b{color:var(--ink);}
+
+  table.mini{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px;}
+  table.mini th,table.mini td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);}
+  table.mini th{font-weight:600;color:var(--ink-soft);font-size:12px;}
+  table.mini td.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;text-align:right;}
+
+  footer{padding-block:30px 50px;font-size:12.5px;color:var(--muted);line-height:1.75;}
+  footer p{margin:0 0 7px;max-width:70ch;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap hero">
+    <div class="src">10번 과제 논문을 실제로 쓰는 앱 · 부산 205개 행정동 · 2021.06 → 2026.06</div>
+    <h1>역세권이면 괜찮을까</h1>
+    <p class="one-liner">
+      부산에서 살 동네를 고르는 사람이 “역세권이니 동네가 유지되겠지”로 판단하려 할 때,
+      이 앱은 <b>역세권이 인구를 늘리지는 않고 줄어드는 속도를 5년에 4~6%p 늦출 뿐이며,
+      어느 층의 동네인지가 그보다 큰 차이(9.2%p)를 만든다</b>는 논문의 결과를
+      그 동네의 숫자로 보여 줍니다.
+    </p>
+    <p class="paper-ref">
+      근거 — 장성혁, 「도시철도 접근성은 축소도시의 인구 감소를 늦추는가: 부산광역시 205개 행정동의 2021–2026년 인구 변화 분석」.
+      아래 숫자와 판정 규칙은 모두 그 논문에서 그대로 가져왔습니다.
+    </p>
+  </div>
+</header>
+
+<main>
+
+<!-- 1 ─────────────────────────────────────── -->
+<section class="step wrap">
+  <div class="step-head"><span class="step-no">1</span><h2>내 동네에서 “역세권”이 몇 %p를 설명하는지 본다</h2></div>
+  <p class="step-note">행정동 이름을 넣으면, 논문이 그 동네가 속한 층에서 역세권 여부로 실제 갈렸는지 아닌지를 그대로 알려 줍니다.</p>
+
+  <div class="pick">
+    <div class="field">
+      <label for="q1">행정동 이름 (예: 반송1동, 중앙동)</label>
+      <input type="text" id="q1" list="dongs" autocomplete="off" placeholder="동 이름을 입력하세요">
+    </div>
+    <button id="rand">아무 동네나</button>
+  </div>
+  <datalist id="dongs"></datalist>
+  <p class="msg" id="m1"></p>
+  <div id="out1"></div>
+</section>
+
+<!-- 2 ─────────────────────────────────────── -->
+<section class="step wrap">
+  <div class="step-head"><span class="step-no">2</span><h2>같은 자료를 세 가지 척도로 재 본다</h2></div>
+  <p class="step-note">논문의 실질적 함의는 이것입니다 — 접근성을 무엇으로 재느냐에 따라 관계가 보이기도 하고 사라지기도 합니다. 직접 바꿔 보세요.</p>
+
+  <div class="tabs">
+    <button data-sc="dist" class="on">① 최근접역까지 거리</button>
+    <button data-sc="count">② 1km 내 역 개수</button>
+    <button data-sc="wide">③ 역세권 여부</button>
+  </div>
+  <div class="scale-box" id="out2"></div>
+</section>
+
+<!-- 3 ─────────────────────────────────────── -->
+<section class="step wrap">
+  <div class="step-head"><span class="step-no">3</span><h2>거리가 비슷한 두 동네를 나란히 놓는다</h2></div>
+  <p class="step-note">역까지 거리가 거의 같은데 5년 인구 변화가 반대인 짝입니다. 거리만으로 고르면 안 되는 이유가 이 한 쌍에 들어 있습니다.</p>
+
+  <div class="pick">
+    <div class="field">
+      <label for="qa">왼쪽 동네</label>
+      <input type="text" id="qa" list="dongs" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="qb">오른쪽 동네</label>
+      <input type="text" id="qb" list="dongs" autocomplete="off">
+    </div>
+    <button id="findpair">어긋난 짝 찾아 주기</button>
+  </div>
+  <p class="msg" id="m3"></p>
+  <div class="vs" id="out3"></div>
+  <div class="gap-note" id="gap3"></div>
+</section>
+
+</main>
+
+<footer class="wrap">
+  <p><strong>이 앱이 쓰는 논문 결과</strong> — 주 검정(최근접역 거리) Spearman ρ = −0.125, p = 0.075. 사전 등록 기준 |ρ| ≥ 0.2 이고 p &lt; 0.05 에 미달하여 <b>가설 기각</b>. 보조 지표 1km 내 역 개수 ρ = +0.173, p = 0.013 (유의). 역세권 여부 중앙값 −7.79% 대 −12.52%, Mann-Whitney p = 0.019. 기성시가지 147개 동에서는 −6.84% 대 −12.69%, p = 0.003. 원도심 45개 동에서는 p = 0.180 으로 갈리지 않음.</p>
+  <p><strong>자료</strong> — 행정안전부 주민등록 인구통계(행정동 단위 2021.06 / 2026.06), 국가철도공단 전체 도시철도 역사정보(2026.06), 행정동 중심점(2026.07). 모두 공개 통계이며 개인정보가 들어 있지 않습니다. 외부 서비스나 API 키를 쓰지 않고, 205개 동의 값이 이 파일 안에 그대로 들어 있습니다.</p>
+  <p><strong>이 앱으로 말할 수 없는 것</strong> — 상관이지 인과가 아닙니다. 주택 공급과 재개발을 통제하지 못했고(강동동 +376%가 그런 경우로 보입니다), 행정동을 중심점 한 점으로 대표했으며, 2021·2026 두 시점만 비교했습니다. 외곽신시가지는 13개 동뿐이라 논문이 판단을 유보했고 이 앱도 그대로 유보합니다.</p>
+</footer>
+
+<script>
+"use strict";
+const DONG = [{"d":"가덕도동","g":"강서구","s":"외곽신시가지","c":4.25,"m":12623,"n":0,"w":0,"st":"다대포해수욕장","p1":3861,"p2":4025},{"d":"가락동","g":"강서구","s":"외곽신시가지","c":-16.67,"m":5101,"n":0,"w":0,"st":"공항","p1":2369,"p2":1974},{"d":"강동동","g":"강서구","s":"외곽신시가지","c":375.96,"m":2862,"n":0,"w":0,"st":"공항","p1":4322,"p2":20571},{"d":"녹산동","g":"강서구","s":"외곽신시가지","c":-6.58,"m":9774,"n":0,"w":0,"st":"신평","p1":34231,"p2":31977},{"d":"대저1동","g":"강서구","s":"외곽신시가지","c":-19.08,"m":267,"n":3,"w":1,"st":"체육공원","p1":6589,"p2":5332},{"d":"대저2동","g":"강서구","s":"외곽신시가지","c":-17.53,"m":1446,"n":0,"w":0,"st":"서부산유통지구","p1":7073,"p2":5833},{"d":"명지1동","g":"강서구","s":"외곽신시가지","c":4.76,"m":4490,"n":0,"w":0,"st":"신평","p1":51922,"p2":54395},{"d":"명지2동","g":"강서구","s":"외곽신시가지","c":-2.98,"m":5321,"n":0,"w":0,"st":"신평","p1":30353,"p2":29448},{"d":"구서1동","g":"금정구","s":"기성시가지","c":-8.26,"m":216,"n":2,"w":1,"st":"구서","p1":19859,"p2":18219},{"d":"구서2동","g":"금정구","s":"기성시가지","c":-10.48,"m":959,"n":1,"w":1,"st":"두실","p1":33610,"p2":30089},{"d":"금사회동동","g":"금정구","s":"기성시가지","c":-17.86,"m":1717,"n":0,"w":0,"st":"반여농산물시장","p1":8002,"p2":6573},{"d":"금성동","g":"금정구","s":"기성시가지","c":-18.47,"m":3408,"n":0,"w":0,"st":"두실","p1":1056,"p2":861},{"d":"남산동","g":"금정구","s":"기성시가지","c":-13.59,"m":1267,"n":0,"w":0,"st":"남산","p1":29170,"p2":25206},{"d":"부곡1동","g":"금정구","s":"기성시가지","c":-18.98,"m":859,"n":2,"w":1,"st":"부산대","p1":8450,"p2":6846},{"d":"부곡2동","g":"금정구","s":"기성시가지","c":-0.95,"m":586,"n":1,"w":1,"st":"부산대","p1":16612,"p2":16454},{"d":"부곡3동","g":"금정구","s":"기성시가지","c":-10.74,"m":2108,"n":0,"w":0,"st":"구서","p1":16029,"p2":14308},{"d":"부곡4동","g":"금정구","s":"기성시가지","c":-15.48,"m":424,"n":1,"w":1,"st":"온천장","p1":12983,"p2":10973},{"d":"서1동","g":"금정구","s":"기성시가지","c":-29.72,"m":1024,"n":0,"w":0,"st":"서동","p1":5522,"p2":3881},{"d":"서2동","g":"금정구","s":"기성시가지","c":-19.89,"m":289,"n":2,"w":1,"st":"서동","p1":9393,"p2":7525},{"d":"서3동","g":"금정구","s":"기성시가지","c":-15.93,"m":860,"n":1,"w":1,"st":"서동","p1":11339,"p2":9533},{"d":"선두구동","g":"금정구","s":"기성시가지","c":-17.83,"m":1519,"n":0,"w":0,"st":"노포","p1":2339,"p2":1922},{"d":"장전1동","g":"금정구","s":"기성시가지","c":1.67,"m":1156,"n":0,"w":0,"st":"장전","p1":17927,"p2":18227},{"d":"장전2동","g":"금정구","s":"기성시가지","c":-3.35,"m":1393,"n":0,"w":0,"st":"부산대","p1":27107,"p2":26199},{"d":"청룡노포동","g":"금정구","s":"기성시가지","c":-9.85,"m":1477,"n":0,"w":0,"st":"노포","p1":9824,"p2":8856},{"d":"기장읍","g":"기장군","s":"외곽신시가지","c":-3.73,"m":2299,"n":0,"w":0,"st":"기장역","p1":52662,"p2":50698},{"d":"일광읍","g":"기장군","s":"외곽신시가지","c":24.25,"m":2396,"n":0,"w":0,"st":"일광역","p1":25637,"p2":31853},{"d":"장안읍","g":"기장군","s":"외곽신시가지","c":-2.18,"m":3583,"n":0,"w":0,"st":"월내역","p1":8585,"p2":8398},{"d":"정관읍","g":"기장군","s":"외곽신시가지","c":-5.57,"m":6569,"n":0,"w":0,"st":"좌천역","p1":81775,"p2":77217},{"d":"철마면","g":"기장군","s":"외곽신시가지","c":-10.83,"m":5110,"n":0,"w":0,"st":"고촌","p1":7958,"p2":7096},{"d":"감만1동","g":"남구","s":"기성시가지","c":-44.6,"m":2599,"n":0,"w":0,"st":"못골","p1":13336,"p2":7388},{"d":"감만2동","g":"남구","s":"기성시가지","c":-12.69,"m":1476,"n":0,"w":0,"st":"못골","p1":6825,"p2":5959},{"d":"대연1동","g":"남구","s":"기성시가지","c":-4.8,"m":418,"n":2,"w":1,"st":"대연","p1":15839,"p2":15079},{"d":"대연3동","g":"남구","s":"기성시가지","c":11.88,"m":973,"n":1,"w":1,"st":"경성대·부경대","p1":32683,"p2":36566},{"d":"대연4동","g":"남구","s":"기성시가지","c":8.09,"m":836,"n":2,"w":1,"st":"대연","p1":12494,"p2":13505},{"d":"대연5동","g":"남구","s":"기성시가지","c":-6.52,"m":740,"n":2,"w":1,"st":"대연","p1":16860,"p2":15760},{"d":"대연6동","g":"남구","s":"기성시가지","c":0.54,"m":455,"n":3,"w":1,"st":"못골","p1":15527,"p2":15611},{"d":"문현1동","g":"남구","s":"기성시가지","c":-26.89,"m":911,"n":1,"w":1,"st":"국제금융센터·부산은행","p1":13819,"p2":10103},{"d":"문현2동","g":"남구","s":"기성시가지","c":-7.19,"m":178,"n":5,"w":1,"st":"국제금융센터·부산은행","p1":8653,"p2":8031},{"d":"문현3동","g":"남구","s":"기성시가지","c":-0.36,"m":363,"n":3,"w":1,"st":"지게골","p1":15802,"p2":15745},{"d":"문현4동","g":"남구","s":"기성시가지","c":-3.49,"m":447,"n":2,"w":1,"st":"지게골","p1":8607,"p2":8307},{"d":"용당동","g":"남구","s":"기성시가지","c":-9.55,"m":2452,"n":0,"w":0,"st":"대연","p1":8253,"p2":7465},{"d":"용호1동","g":"남구","s":"기성시가지","c":-6.54,"m":1556,"n":0,"w":0,"st":"경성대·부경대","p1":44573,"p2":41658},{"d":"용호2동","g":"남구","s":"기성시가지","c":11.54,"m":3672,"n":0,"w":0,"st":"경성대·부경대","p1":16941,"p2":18896},{"d":"용호3동","g":"남구","s":"기성시가지","c":-19.86,"m":2414,"n":0,"w":0,"st":"경성대·부경대","p1":12321,"p2":9874},{"d":"용호4동","g":"남구","s":"기성시가지","c":-13.31,"m":3409,"n":0,"w":0,"st":"대연","p1":8578,"p2":7436},{"d":"우암동","g":"남구","s":"기성시가지","c":31.13,"m":1064,"n":0,"w":0,"st":"지게골","p1":12987,"p2":17030},{"d":"범일1동","g":"동구","s":"원도심","c":-13.47,"m":964,"n":1,"w":1,"st":"좌천","p1":11705,"p2":10128},{"d":"범일2동","g":"동구","s":"원도심","c":-25.29,"m":620,"n":3,"w":1,"st":"문현","p1":8184,"p2":6114},{"d":"범일5동","g":"동구","s":"원도심","c":103.13,"m":859,"n":2,"w":1,"st":"좌천","p1":4415,"p2":8968},{"d":"수정1동","g":"동구","s":"원도심","c":-5.57,"m":467,"n":2,"w":1,"st":"초량","p1":4163,"p2":3931},{"d":"수정2동","g":"동구","s":"원도심","c":-14.28,"m":910,"n":1,"w":1,"st":"부산진","p1":9970,"p2":8546},{"d":"수정4동","g":"동구","s":"원도심","c":-20.08,"m":1305,"n":0,"w":0,"st":"부산진","p1":3975,"p2":3177},{"d":"수정5동","g":"동구","s":"원도심","c":-18.74,"m":1086,"n":0,"w":0,"st":"부산진","p1":5395,"p2":4384},{"d":"좌천동","g":"동구","s":"원도심","c":-2.76,"m":324,"n":2,"w":1,"st":"좌천","p1":10890,"p2":10589},{"d":"초량1동","g":"동구","s":"원도심","c":-0.43,"m":245,"n":2,"w":1,"st":"부산역","p1":4829,"p2":4808},{"d":"초량2동","g":"동구","s":"원도심","c":-15.15,"m":481,"n":2,"w":1,"st":"부산역","p1":5748,"p2":4877},{"d":"초량3동","g":"동구","s":"원도심","c":3.73,"m":225,"n":3,"w":1,"st":"초량","p1":12562,"p2":13030},{"d":"초량6동","g":"동구","s":"원도심","c":-21.02,"m":1169,"n":0,"w":0,"st":"초량","p1":6080,"p2":4802},{"d":"명륜동","g":"동래구","s":"기성시가지","c":0.19,"m":524,"n":4,"w":1,"st":"명륜","p1":24915,"p2":24963},{"d":"명장1동","g":"동래구","s":"기성시가지","c":-10.32,"m":468,"n":3,"w":1,"st":"명장","p1":14350,"p2":12869},{"d":"명장2동","g":"동래구","s":"기성시가지","c":-12.39,"m":566,"n":2,"w":1,"st":"명장","p1":14920,"p2":13071},{"d":"복산동","g":"동래구","s":"기성시가지","c":-20.77,"m":592,"n":3,"w":1,"st":"낙민","p1":9786,"p2":7753},{"d":"사직1동","g":"동래구","s":"기성시가지","c":9.21,"m":214,"n":3,"w":1,"st":"사직","p1":10678,"p2":11661},{"d":"사직2동","g":"동래구","s":"기성시가지","c":-12.86,"m":1061,"n":0,"w":0,"st":"사직","p1":27785,"p2":24211},{"d":"사직3동","g":"동래구","s":"기성시가지","c":-6.0,"m":572,"n":9,"w":1,"st":"사직","p1":17428,"p2":16383},{"d":"수민동","g":"동래구","s":"기성시가지","c":-12.21,"m":329,"n":5,"w":1,"st":"낙민","p1":32866,"p2":28854},{"d":"안락1동","g":"동래구","s":"기성시가지","c":-12.83,"m":170,"n":4,"w":1,"st":"충렬사","p1":14759,"p2":12866},{"d":"안락2동","g":"동래구","s":"기성시가지","c":-8.08,"m":376,"n":2,"w":1,"st":"부산원동역","p1":27434,"p2":25217},{"d":"온천1동","g":"동래구","s":"기성시가지","c":72.53,"m":1068,"n":0,"w":0,"st":"명륜","p1":19713,"p2":34011},{"d":"온천2동","g":"동래구","s":"기성시가지","c":59.37,"m":871,"n":2,"w":1,"st":"미남","p1":14933,"p2":23798},{"d":"온천3동","g":"동래구","s":"기성시가지","c":-8.72,"m":376,"n":3,"w":1,"st":"미남","p1":38824,"p2":35440},{"d":"가야1동","g":"부산진구","s":"기성시가지","c":-18.06,"m":824,"n":1,"w":1,"st":"동의대","p1":19349,"p2":15854},{"d":"가야2동","g":"부산진구","s":"기성시가지","c":3.33,"m":981,"n":1,"w":1,"st":"개금","p1":16983,"p2":17548},{"d":"개금1동","g":"부산진구","s":"기성시가지","c":8.05,"m":216,"n":2,"w":1,"st":"개금","p1":16847,"p2":18204},{"d":"개금2동","g":"부산진구","s":"기성시가지","c":-14.82,"m":1166,"n":0,"w":0,"st":"냉정","p1":11148,"p2":9496},{"d":"개금3동","g":"부산진구","s":"기성시가지","c":-13.1,"m":775,"n":1,"w":1,"st":"개금","p1":29112,"p2":25297},{"d":"당감1동","g":"부산진구","s":"기성시가지","c":-14.63,"m":1752,"n":0,"w":0,"st":"개금","p1":23337,"p2":19923},{"d":"당감2동","g":"부산진구","s":"기성시가지","c":10.96,"m":363,"n":2,"w":1,"st":"가야","p1":10312,"p2":11442},{"d":"당감4동","g":"부산진구","s":"기성시가지","c":-15.18,"m":1853,"n":0,"w":0,"st":"동의대","p1":11427,"p2":9692},{"d":"범천1동","g":"부산진구","s":"기성시가지","c":2.99,"m":175,"n":5,"w":1,"st":"범내골","p1":11990,"p2":12349},{"d":"범천2동","g":"부산진구","s":"기성시가지","c":4.73,"m":913,"n":3,"w":1,"st":"범내골","p1":20509,"p2":21479},{"d":"부암1동","g":"부산진구","s":"기성시가지","c":4.65,"m":800,"n":1,"w":1,"st":"부암","p1":22852,"p2":23914},{"d":"부암3동","g":"부산진구","s":"기성시가지","c":33.99,"m":2289,"n":0,"w":0,"st":"가야","p1":17690,"p2":23703},{"d":"부전1동","g":"부산진구","s":"기성시가지","c":-11.67,"m":104,"n":4,"w":1,"st":"부전역","p1":15781,"p2":13940},{"d":"부전2동","g":"부산진구","s":"기성시가지","c":26.15,"m":355,"n":5,"w":1,"st":"서면","p1":9854,"p2":12431},{"d":"양정1동","g":"부산진구","s":"기성시가지","c":-7.31,"m":425,"n":2,"w":1,"st":"양정","p1":20256,"p2":18775},{"d":"양정2동","g":"부산진구","s":"기성시가지","c":67.33,"m":403,"n":2,"w":1,"st":"양정","p1":12539,"p2":20981},{"d":"연지동","g":"부산진구","s":"기성시가지","c":21.37,"m":969,"n":1,"w":1,"st":"부전역","p1":20800,"p2":25245},{"d":"전포1동","g":"부산진구","s":"기성시가지","c":-8.03,"m":605,"n":1,"w":1,"st":"전포","p1":22155,"p2":20377},{"d":"전포2동","g":"부산진구","s":"기성시가지","c":8.96,"m":650,"n":2,"w":1,"st":"부전","p1":20987,"p2":22867},{"d":"초읍동","g":"부산진구","s":"기성시가지","c":-3.47,"m":2520,"n":0,"w":0,"st":"종합운동장","p1":22163,"p2":21395},{"d":"구포1동","g":"북구","s":"기성시가지","c":0.29,"m":432,"n":5,"w":1,"st":"덕천","p1":14407,"p2":14449},{"d":"구포2동","g":"북구","s":"기성시가지","c":-13.54,"m":333,"n":3,"w":1,"st":"구남","p1":25793,"p2":22301},{"d":"구포3동","g":"북구","s":"기성시가지","c":-17.16,"m":1558,"n":0,"w":0,"st":"구명","p1":20059,"p2":16616},{"d":"금곡동","g":"북구","s":"기성시가지","c":-12.77,"m":826,"n":1,"w":1,"st":"금곡","p1":38404,"p2":33498},{"d":"덕천1동","g":"북구","s":"기성시가지","c":19.22,"m":679,"n":2,"w":1,"st":"숙등","p1":11646,"p2":13884},{"d":"덕천2동","g":"북구","s":"기성시가지","c":-13.65,"m":594,"n":4,"w":1,"st":"덕천","p1":12186,"p2":10523},{"d":"덕천3동","g":"북구","s":"기성시가지","c":-15.17,"m":792,"n":2,"w":1,"st":"숙등","p1":10852,"p2":9206},{"d":"만덕1동","g":"북구","s":"기성시가지","c":-2.26,"m":960,"n":1,"w":1,"st":"만덕","p1":16092,"p2":15729},{"d":"만덕2동","g":"북구","s":"기성시가지","c":-5.06,"m":892,"n":1,"w":1,"st":"만덕","p1":26607,"p2":25260},{"d":"만덕3동","g":"북구","s":"기성시가지","c":-11.39,"m":958,"n":1,"w":1,"st":"남산정","p1":18875,"p2":16726},{"d":"화명1동","g":"북구","s":"기성시가지","c":-8.32,"m":1422,"n":0,"w":0,"st":"화명","p1":42030,"p2":38534},{"d":"화명2동","g":"북구","s":"기성시가지","c":-1.85,"m":1796,"n":0,"w":0,"st":"율리","p1":16770,"p2":16460},{"d":"화명3동","g":"북구","s":"기성시가지","c":-7.83,"m":873,"n":1,"w":1,"st":"화명","p1":29891,"p2":27550},{"d":"감전동","g":"사상구","s":"기성시가지","c":-17.37,"m":1436,"n":0,"w":0,"st":"감전","p1":13543,"p2":11190},{"d":"괘법동","g":"사상구","s":"기성시가지","c":8.19,"m":797,"n":2,"w":1,"st":"사상","p1":22311,"p2":24139},{"d":"덕포1동","g":"사상구","s":"기성시가지","c":30.33,"m":540,"n":3,"w":1,"st":"덕포","p1":8771,"p2":11431},{"d":"덕포2동","g":"사상구","s":"기성시가지","c":-11.44,"m":538,"n":2,"w":1,"st":"모덕","p1":12977,"p2":11492},{"d":"모라1동","g":"사상구","s":"기성시가지","c":-11.51,"m":214,"n":2,"w":1,"st":"모라","p1":28296,"p2":25040},{"d":"모라3동","g":"사상구","s":"기성시가지","c":-20.74,"m":1878,"n":0,"w":0,"st":"모라","p1":10724,"p2":8500},{"d":"삼락동","g":"사상구","s":"기성시가지","c":-19.15,"m":1161,"n":0,"w":0,"st":"괘법르네시떼","p1":5823,"p2":4708},{"d":"엄궁동","g":"사상구","s":"기성시가지","c":-16.45,"m":2363,"n":0,"w":0,"st":"하단","p1":27503,"p2":22979},{"d":"주례1동","g":"사상구","s":"기성시가지","c":3.86,"m":626,"n":2,"w":1,"st":"주례","p1":15341,"p2":15933},{"d":"주례2동","g":"사상구","s":"기성시가지","c":-11.46,"m":167,"n":3,"w":1,"st":"냉정","p1":23250,"p2":20586},{"d":"주례3동","g":"사상구","s":"기성시가지","c":-12.97,"m":605,"n":1,"w":1,"st":"주례","p1":13196,"p2":11484},{"d":"학장동","g":"사상구","s":"기성시가지","c":-12.61,"m":1901,"n":0,"w":0,"st":"주례","p1":28598,"p2":24993},{"d":"감천1동","g":"사하구","s":"기성시가지","c":-17.08,"m":1675,"n":0,"w":0,"st":"괴정","p1":18914,"p2":15684},{"d":"감천2동","g":"사하구","s":"기성시가지","c":-22.28,"m":1270,"n":0,"w":0,"st":"토성","p1":6109,"p2":4748},{"d":"괴정1동","g":"사하구","s":"기성시가지","c":-17.57,"m":287,"n":2,"w":1,"st":"괴정","p1":19738,"p2":16271},{"d":"괴정2동","g":"사하구","s":"기성시가지","c":1.22,"m":429,"n":2,"w":1,"st":"대티","p1":14081,"p2":14253},{"d":"괴정3동","g":"사하구","s":"기성시가지","c":-11.91,"m":403,"n":2,"w":1,"st":"대티","p1":12631,"p2":11127},{"d":"괴정4동","g":"사하구","s":"기성시가지","c":-5.52,"m":64,"n":3,"w":1,"st":"사하","p1":12405,"p2":11720},{"d":"구평동","g":"사하구","s":"기성시가지","c":4.38,"m":1256,"n":0,"w":0,"st":"신장림","p1":11564,"p2":12070},{"d":"다대1동","g":"사하구","s":"기성시가지","c":-12.58,"m":584,"n":2,"w":1,"st":"다대포항","p1":39242,"p2":34306},{"d":"다대2동","g":"사하구","s":"기성시가지","c":-12.36,"m":695,"n":1,"w":1,"st":"낫개","p1":27750,"p2":24320},{"d":"당리동","g":"사하구","s":"기성시가지","c":-13.91,"m":1292,"n":0,"w":0,"st":"당리","p1":26716,"p2":23000},{"d":"신평1동","g":"사하구","s":"기성시가지","c":-14.82,"m":136,"n":1,"w":1,"st":"동매","p1":17199,"p2":14650},{"d":"신평2동","g":"사하구","s":"기성시가지","c":4.4,"m":566,"n":1,"w":1,"st":"신평","p1":15806,"p2":16502},{"d":"장림1동","g":"사하구","s":"기성시가지","c":22.61,"m":1260,"n":0,"w":0,"st":"신장림","p1":10880,"p2":13340},{"d":"장림2동","g":"사하구","s":"기성시가지","c":-11.93,"m":153,"n":2,"w":1,"st":"신장림","p1":27670,"p2":24368},{"d":"하단1동","g":"사하구","s":"기성시가지","c":-4.58,"m":1439,"n":0,"w":0,"st":"신평","p1":21521,"p2":20536},{"d":"하단2동","g":"사하구","s":"기성시가지","c":-0.27,"m":1229,"n":0,"w":0,"st":"하단","p1":25333,"p2":25264},{"d":"남부민1동","g":"서구","s":"원도심","c":-16.28,"m":978,"n":1,"w":1,"st":"자갈치","p1":4931,"p2":4128},{"d":"남부민2동","g":"서구","s":"원도심","c":-22.95,"m":1484,"n":0,"w":0,"st":"자갈치","p1":9322,"p2":7183},{"d":"동대신1동","g":"서구","s":"원도심","c":-9.08,"m":413,"n":2,"w":1,"st":"동대신","p1":5495,"p2":4996},{"d":"동대신2동","g":"서구","s":"원도심","c":-16.51,"m":624,"n":1,"w":1,"st":"동대신","p1":7359,"p2":6144},{"d":"동대신3동","g":"서구","s":"원도심","c":-9.66,"m":1375,"n":0,"w":0,"st":"동대신","p1":7650,"p2":6911},{"d":"부민동","g":"서구","s":"원도심","c":-5.08,"m":460,"n":3,"w":1,"st":"토성","p1":7661,"p2":7272},{"d":"서대신1동","g":"서구","s":"원도심","c":5.64,"m":206,"n":2,"w":1,"st":"서대신","p1":13680,"p2":14452},{"d":"서대신3동","g":"서구","s":"원도심","c":-15.78,"m":536,"n":2,"w":1,"st":"서대신","p1":8487,"p2":7148},{"d":"서대신4동","g":"서구","s":"원도심","c":-12.96,"m":1851,"n":0,"w":0,"st":"서대신","p1":7810,"p2":6798},{"d":"아미동","g":"서구","s":"원도심","c":-11.57,"m":603,"n":1,"w":1,"st":"토성","p1":6777,"p2":5993},{"d":"암남동","g":"서구","s":"원도심","c":35.15,"m":3205,"n":0,"w":0,"st":"낫개","p1":12952,"p2":17505},{"d":"초장동","g":"서구","s":"원도심","c":-21.75,"m":696,"n":2,"w":1,"st":"토성","p1":4401,"p2":3444},{"d":"충무동","g":"서구","s":"원도심","c":-6.62,"m":376,"n":2,"w":1,"st":"자갈치","p1":9897,"p2":9242},{"d":"광안1동","g":"수영구","s":"기성시가지","c":-5.88,"m":576,"n":3,"w":1,"st":"수영","p1":25838,"p2":24318},{"d":"광안2동","g":"수영구","s":"기성시가지","c":-4.79,"m":437,"n":2,"w":1,"st":"광안","p1":18652,"p2":17759},{"d":"광안3동","g":"수영구","s":"기성시가지","c":-5.88,"m":364,"n":3,"w":1,"st":"수영","p1":9456,"p2":8900},{"d":"광안4동","g":"수영구","s":"기성시가지","c":-4.7,"m":748,"n":2,"w":1,"st":"광안","p1":13734,"p2":13088},{"d":"남천1동","g":"수영구","s":"기성시가지","c":18.11,"m":212,"n":2,"w":1,"st":"남천","p1":13915,"p2":16435},{"d":"남천2동","g":"수영구","s":"기성시가지","c":8.52,"m":588,"n":2,"w":1,"st":"남천","p1":12247,"p2":13291},{"d":"망미1동","g":"수영구","s":"기성시가지","c":-9.8,"m":534,"n":2,"w":1,"st":"배산","p1":27545,"p2":24845},{"d":"망미2동","g":"수영구","s":"기성시가지","c":-15.63,"m":873,"n":2,"w":1,"st":"센텀역","p1":11193,"p2":9443},{"d":"민락동","g":"수영구","s":"기성시가지","c":-5.4,"m":931,"n":1,"w":1,"st":"민락","p1":28492,"p2":26954},{"d":"수영동","g":"수영구","s":"기성시가지","c":-9.44,"m":409,"n":4,"w":1,"st":"수영","p1":14805,"p2":13407},{"d":"거제1동","g":"연제구","s":"기성시가지","c":-6.42,"m":185,"n":7,"w":1,"st":"교대역","p1":29428,"p2":27538},{"d":"거제2동","g":"연제구","s":"기성시가지","c":101.44,"m":727,"n":1,"w":1,"st":"종합운동장","p1":12397,"p2":24973},{"d":"거제3동","g":"연제구","s":"기성시가지","c":-12.25,"m":283,"n":6,"w":1,"st":"거제해맞이역","p1":10071,"p2":8837},{"d":"거제4동","g":"연제구","s":"기성시가지","c":-13.21,"m":315,"n":1,"w":1,"st":"거제해맞이역","p1":10586,"p2":9188},{"d":"연산1동","g":"연제구","s":"기성시가지","c":-5.9,"m":784,"n":2,"w":1,"st":"연산","p1":16198,"p2":15242},{"d":"연산2동","g":"연제구","s":"기성시가지","c":7.92,"m":633,"n":3,"w":1,"st":"물만골","p1":20963,"p2":22624},{"d":"연산3동","g":"연제구","s":"기성시가지","c":37.1,"m":767,"n":1,"w":1,"st":"배산","p1":7248,"p2":9937},{"d":"연산4동","g":"연제구","s":"기성시가지","c":6.48,"m":487,"n":3,"w":1,"st":"연산","p1":16321,"p2":17378},{"d":"연산5동","g":"연제구","s":"기성시가지","c":3.49,"m":410,"n":6,"w":1,"st":"연산","p1":16427,"p2":17000},{"d":"연산6동","g":"연제구","s":"기성시가지","c":-10.54,"m":572,"n":2,"w":1,"st":"물만골","p1":16742,"p2":14977},{"d":"연산8동","g":"연제구","s":"기성시가지","c":-11.45,"m":1111,"n":0,"w":0,"st":"안락역","p1":14308,"p2":12670},{"d":"연산9동","g":"연제구","s":"기성시가지","c":-12.52,"m":1249,"n":0,"w":0,"st":"부산원동역","p1":35550,"p2":31100},{"d":"남항동","g":"영도구","s":"원도심","c":-9.99,"m":974,"n":1,"w":1,"st":"남포","p1":10841,"p2":9758},{"d":"동삼1동","g":"영도구","s":"원도심","c":-3.26,"m":3898,"n":0,"w":0,"st":"남포","p1":27839,"p2":26931},{"d":"동삼2동","g":"영도구","s":"원도심","c":52.28,"m":5792,"n":0,"w":0,"st":"남포","p1":3462,"p2":5272},{"d":"동삼3동","g":"영도구","s":"원도심","c":-20.23,"m":3420,"n":0,"w":0,"st":"남포","p1":10118,"p2":8071},{"d":"봉래1동","g":"영도구","s":"원도심","c":-7.58,"m":862,"n":1,"w":1,"st":"남포","p1":6874,"p2":6353},{"d":"봉래2동","g":"영도구","s":"원도심","c":-5.78,"m":1582,"n":0,"w":0,"st":"남포","p1":7315,"p2":6892},{"d":"신선동","g":"영도구","s":"원도심","c":-25.73,"m":1928,"n":0,"w":0,"st":"남포","p1":8582,"p2":6374},{"d":"영선1동","g":"영도구","s":"원도심","c":-11.64,"m":1226,"n":0,"w":0,"st":"남포","p1":3977,"p2":3514},{"d":"영선2동","g":"영도구","s":"원도심","c":-18.18,"m":2311,"n":0,"w":0,"st":"남포","p1":8462,"p2":6924},{"d":"청학1동","g":"영도구","s":"원도심","c":-20.46,"m":2011,"n":0,"w":0,"st":"남포","p1":6315,"p2":5023},{"d":"청학2동","g":"영도구","s":"원도심","c":-13.64,"m":2758,"n":0,"w":0,"st":"남포","p1":17900,"p2":15458},{"d":"광복동","g":"중구","s":"원도심","c":-16.22,"m":441,"n":3,"w":1,"st":"남포","p1":999,"p2":837},{"d":"남포동","g":"중구","s":"원도심","c":-21.49,"m":282,"n":3,"w":1,"st":"자갈치","p1":940,"p2":738},{"d":"대청동","g":"중구","s":"원도심","c":-14.17,"m":508,"n":3,"w":1,"st":"중앙","p1":6365,"p2":5463},{"d":"동광동","g":"중구","s":"원도심","c":-17.6,"m":201,"n":2,"w":1,"st":"중앙","p1":2733,"p2":2252},{"d":"보수동","g":"중구","s":"원도심","c":-8.21,"m":795,"n":2,"w":1,"st":"토성","p1":10622,"p2":9750},{"d":"부평동","g":"중구","s":"원도심","c":-11.99,"m":442,"n":3,"w":1,"st":"자갈치","p1":4513,"p2":3972},{"d":"영주1동","g":"중구","s":"원도심","c":-10.75,"m":553,"n":2,"w":1,"st":"부산역","p1":4689,"p2":4185},{"d":"영주2동","g":"중구","s":"원도심","c":-16.12,"m":893,"n":1,"w":1,"st":"부산역","p1":7127,"p2":5978},{"d":"중앙동","g":"중구","s":"원도심","c":21.69,"m":228,"n":2,"w":1,"st":"중앙","p1":2573,"p2":3131},{"d":"반송1동","g":"해운대구","s":"기성시가지","c":-20.21,"m":605,"n":2,"w":1,"st":"영산대","p1":14048,"p2":11209},{"d":"반송2동","g":"해운대구","s":"기성시가지","c":-16.53,"m":360,"n":2,"w":1,"st":"윗반송","p1":23630,"p2":19723},{"d":"반여1동","g":"해운대구","s":"기성시가지","c":-0.29,"m":1344,"n":0,"w":0,"st":"반여농산물시장","p1":34866,"p2":34765},{"d":"반여2동","g":"해운대구","s":"기성시가지","c":-16.44,"m":1594,"n":0,"w":0,"st":"재송역","p1":12857,"p2":10743},{"d":"반여3동","g":"해운대구","s":"기성시가지","c":-20.33,"m":2015,"n":0,"w":0,"st":"석대","p1":8755,"p2":6975},{"d":"반여4동","g":"해운대구","s":"기성시가지","c":-12.7,"m":854,"n":2,"w":1,"st":"금사","p1":16256,"p2":14192},{"d":"송정동","g":"해운대구","s":"기성시가지","c":-9.94,"m":505,"n":1,"w":1,"st":"송정역","p1":9960,"p2":8970},{"d":"우1동","g":"해운대구","s":"기성시가지","c":5.27,"m":1551,"n":0,"w":0,"st":"해운대","p1":22623,"p2":23816},{"d":"우2동","g":"해운대구","s":"기성시가지","c":-4.42,"m":187,"n":3,"w":1,"st":"벡스코역","p1":30958,"p2":29591},{"d":"우3동","g":"해운대구","s":"기성시가지","c":-2.84,"m":473,"n":1,"w":1,"st":"동백","p1":28770,"p2":27952},{"d":"재송1동","g":"해운대구","s":"기성시가지","c":-5.82,"m":476,"n":2,"w":1,"st":"센텀역","p1":38117,"p2":35899},{"d":"재송2동","g":"해운대구","s":"기성시가지","c":-14.87,"m":1107,"n":0,"w":0,"st":"재송역","p1":25028,"p2":21306},{"d":"좌1동","g":"해운대구","s":"기성시가지","c":-7.15,"m":424,"n":2,"w":1,"st":"장산","p1":18206,"p2":16905},{"d":"좌2동","g":"해운대구","s":"기성시가지","c":-7.28,"m":685,"n":1,"w":1,"st":"장산","p1":32162,"p2":29819},{"d":"좌3동","g":"해운대구","s":"기성시가지","c":-8.7,"m":730,"n":2,"w":1,"st":"중동","p1":16228,"p2":14816},{"d":"좌4동","g":"해운대구","s":"기성시가지","c":-7.76,"m":943,"n":1,"w":1,"st":"신해운대역","p1":23306,"p2":21498},{"d":"중1동","g":"해운대구","s":"기성시가지","c":0.11,"m":325,"n":2,"w":1,"st":"중동","p1":27291,"p2":27320},{"d":"중2동","g":"해운대구","s":"기성시가지","c":-4.48,"m":1199,"n":0,"w":0,"st":"장산","p1":15954,"p2":15240}];
+
+/* ── 논문에서 그대로 옮긴 수치와 판정 규칙 ───────────────────────── */
+const P = {
+  rule: "사전 등록: |ρ| ≥ 0.2 이고 p < 0.05 이면 가설 지지",
+  dist:  { rho:-0.1246, p:0.07503, sig:false },
+  count: { rho:+0.1728, p:0.01324, sig:true  },
+  wide:  { withMed:-7.79, withN:130, withoutMed:-12.52, withoutN:75, p:0.01901, sig:true },
+  stratum: {
+    "원도심":      { n:45,  med:-12.96, wMed:-11.57, wN:29, oMed:-15.91, oN:16, p:0.1803, sig:false },
+    "기성시가지":  { n:147, med:-8.08,  wMed:-6.84,  wN:100, oMed:-12.69, oN:47, p:0.0032, sig:true  },
+    "외곽신시가지":{ n:13,  med:-3.73,  hold:true }
+  },
+  nbBins: [ {k:"0개",n:75,med:-12.52}, {k:"1개",n:37,med:-9.99},
+            {k:"2개",n:55,med:-7.15}, {k:"3개 이상",n:38,med:-6.21} ],
+  quint: [ {k:"Q1 가장 가까움",d:267,med:-8.08}, {k:"Q2",d:505,med:-7.31},
+           {k:"Q3",d:800,med:-7.83}, {k:"Q4",d:1229,med:-11.45}, {k:"Q5 가장 멂",d:2414,med:-12.61} ]
+};
+
+/* ── 도구 ─────────────────────────────────────────────────────── */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pct = v => (v > 0 ? "+" : "") + v.toFixed(2);
+const nbKey = n => n === 0 ? "0개" : n === 1 ? "1개" : n === 2 ? "2개" : "3개 이상";
+
+/* 입력이 무엇이든 죽지 않게: 공백·기호 제거 후 부분 일치 */
+function norm(s){ return String(s == null ? "" : s).replace(/[\s·.,·()]/g, "").toLowerCase(); }
+function findDong(raw){
+  const q = norm(raw);
+  if (!q) return null;
+  return DONG.find(d => norm(d.d) === q)
+      || DONG.find(d => norm(d.g + d.d) === q)
+      || DONG.find(d => norm(d.d).startsWith(q))
+      || DONG.find(d => norm(d.d).includes(q))
+      || DONG.find(d => norm(d.g).includes(q))
+      || null;
+}
+function suggest(raw){
+  const q = norm(raw);
+  if (!q) return [];
+  const one = q[0];
+  return DONG.filter(d => norm(d.d).includes(one)).slice(0, 6).map(d => d.d);
+}
+
+/* ── 1단계 ────────────────────────────────────────────────────── */
+function factRow(d){
+  return `<div class="facts">
+    <div class="fact"><div class="v">${pct(d.c)}<span class="u">%</span></div><div class="k">5년 인구 변화</div></div>
+    <div class="fact"><div class="v">${d.m.toLocaleString()}<span class="u">m</span></div><div class="k">최근접역 거리<br>(${esc(d.st)})</div></div>
+    <div class="fact"><div class="v">${d.n}<span class="u">개</span></div><div class="k">1km 내 역</div></div>
+    <div class="fact"><div class="v">${d.p1.toLocaleString()}</div><div class="k">2021.06 인구</div></div>
+    <div class="fact"><div class="v">${d.p2.toLocaleString()}</div><div class="k">2026.06 인구</div></div>
+  </div>`;
+}
+
+function verdictFor(d){
+  const S = P.stratum[d.s];
+  const wide = d.w === 1;
+  if (!S) return "";
+  if (S.hold){
+    return `<div class="verdict v-hold"><span class="tag">판단 유보</span>
+      <p>${esc(d.s)} 층은 <strong>13</strong>개 동뿐이라 논문이 이 층에 대한 판단을 유보했습니다. 이 앱도 유보합니다.</p>
+      <p>참고로 이 층의 인구 변화 중앙값은 <strong>${S.med}%</strong>로 세 층 가운데 가장 덜 줄었습니다.
+      다만 그 이유가 역세권인지 신규 주택 공급인지 이 자료로는 구분할 수 없습니다.</p></div>`;
+  }
+  const mine = wide ? S.wMed : S.oMed;
+  const other = wide ? S.oMed : S.wMed;
+  const diff = Math.abs(S.wMed - S.oMed).toFixed(2);
+  const better = d.c > mine;
+  if (S.sig){
+    return `<div class="verdict v-ok"><span class="tag">이 층에서는 갈렸습니다</span>
+      <p>${esc(d.d)}은 <b>${esc(d.s)}</b>의 <b>${wide ? "역세권" : "비역세권"}</b> 동네입니다.
+      이 층에서 역세권과 비역세권의 인구 변화 중앙값은 <strong>${S.wMed}%</strong> 대 <strong>${S.oMed}%</strong>,
+      차이 <strong>${diff}%p</strong> (Mann-Whitney p = <strong>${S.p}</strong>) 로 갈렸습니다.</p>
+      <p>같은 조건 동네들의 중앙값은 <strong>${mine}%</strong>인데 ${esc(d.d)}의 실제 값은
+      <strong>${pct(d.c)}%</strong>입니다 — 중앙값보다 ${better ? "덜 줄었습니다" : "더 줄었습니다"}.
+      ${wide
+        ? `역세권이 아니었다면 이 층의 중앙값은 <strong>${other}%</strong> 쪽이었습니다.`
+        : `역세권이었다면 이 층의 중앙값은 <strong>${other}%</strong> 쪽이었습니다.`}</p>
+      <p>다만 <b>역세권이어도 여전히 줄어듭니다.</b> 늘어난 것이 아니라 덜 줄어든 것입니다.</p></div>`;
+  }
+  return `<div class="verdict v-no"><span class="tag">이 층에서는 갈리지 않았습니다</span>
+    <p>${esc(d.d)}은 <b>${esc(d.s)}</b>의 <b>${wide ? "역세권" : "비역세권"}</b> 동네입니다.
+    그런데 ${esc(d.s)} ${S.n}개 동 안에서는 역세권 여부로 인구 변화가 갈리지 않았습니다
+    (중앙값 <strong>${S.wMed}%</strong> 대 <strong>${S.oMed}%</strong>, p = <strong>${S.p}</strong> — 유의하지 않음).</p>
+    <p><b>즉 이 동네에 대해서는 “역세권이니까”가 설명이 되지 못합니다.</b>
+    ${esc(d.s)} 전체의 중앙값이 <strong>${S.med}%</strong>로 세 층 중 가장 많이 줄었다는 사실이,
+    역 유무보다 이 동네를 더 잘 설명합니다.</p></div>`;
+}
+
+function show1(d){
+  $("#out1").innerHTML = `<div class="card">
+    <h3>${esc(d.g)} ${esc(d.d)}</h3>
+    <div class="sub">${esc(d.s)} · ${d.w === 1 ? "역세권(1km 내 역 있음)" : "비역세권(1km 내 역 없음)"}</div>
+    ${factRow(d)}${verdictFor(d)}
+    <p class="read">전체 205개 동으로 보면, <b>최근접역까지의 거리</b>와 인구 변화의 관계는
+      ρ = <span class="mono">${P.dist.rho}</span>, p = <span class="mono">${P.dist.p}</span> 로
+      사전 기준에 미달해 <b>기각</b>되었습니다. 거리라는 척도로는 동네가 갈리지 않습니다.</p>
+  </div>`;
+}
+
+/* ── 2단계 ────────────────────────────────────────────────────── */
+function scatter(){
+  const W = 640, H = 300, L = 52, R = 14, T = 14, B = 38;
+  const x0 = Math.log10(60), x1 = Math.log10(13000);
+  const yLo = -50, yHi = 60;
+  const px = m => L + (Math.log10(Math.max(m, 60)) - x0) / (x1 - x0) * (W - L - R);
+  const py = c => T + (yHi - Math.min(Math.max(c, yLo), yHi)) / (yHi - yLo) * (H - T - B);
+  let g = "";
+  for (const v of [-40,-20,0,20,40]){
+    g += `<line x1="${L}" x2="${W-R}" y1="${py(v).toFixed(1)}" y2="${py(v).toFixed(1)}"
+      stroke="var(--line)" stroke-width="1"${v===0?' stroke-dasharray="3 3"':''}/>
+      <text class="axis-t" x="${L-7}" y="${(py(v)+3.5).toFixed(1)}" text-anchor="end">${v}%</text>`;
+  }
+  for (const m of [100,300,1000,3000,10000]){
+    g += `<text class="axis-t" x="${px(m).toFixed(1)}" y="${H-B+16}" text-anchor="middle">${m>=1000?(m/1000)+"km":m+"m"}</text>`;
+  }
+  let pts = "", over = "";
+  for (const d of DONG){
+    const cx = px(d.m).toFixed(1), cy = py(d.c).toFixed(1);
+    if (d.c > yHi){
+      over += `<path d="M${cx},${(T+2)} l4.5,7 h-9 Z" fill="var(--brick)" opacity=".85"><title>${esc(d.d)} ${pct(d.c)}% (칸 밖)</title></path>`;
+    } else {
+      pts += `<circle cx="${cx}" cy="${cy}" r="3.4" fill="var(--dot)" opacity=".62"><title>${esc(d.d)} · ${d.m}m · ${pct(d.c)}%</title></circle>`;
+    }
+  }
+  return `<div class="plot-wrap"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img"
+    aria-label="가로축 최근접역 거리(로그), 세로축 5년 인구 변화율. 205개 동이 흩어져 있고 기울기가 보이지 않습니다.">
+    ${g}${pts}${over}
+    <text class="axis-t" x="${L}" y="${H-4}">← 역에서 가까움          역에서 멂 →</text>
+  </svg></div>`;
+}
+
+function bars(items, valKey, labKey, hiFrom){
+  const W = 640, H = 210, L = 84, R = 44, T = 10, B = 26;
+  const vals = items.map(i => i[valKey]);
+  const lo = Math.min(...vals, 0), hi = 0;
+  const bw = (H - T - B) / items.length;
+  const bx = v => L + (v - lo) / (hi - lo || 1) * (W - L - R);
+  let g = "";
+  items.forEach((it, i) => {
+    const y = T + i * bw + bw * 0.18, h = bw * 0.64;
+    const x = bx(it[valKey]), xe = bx(0);
+    g += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${Math.max(xe-x,1).toFixed(1)}" height="${h.toFixed(1)}"
+      class="${hiFrom != null && i >= hiFrom ? "bar-hi" : "bar"}" rx="2"/>
+      <text class="axis-t" x="${L-8}" y="${(y+h/2+3.5).toFixed(1)}" text-anchor="end">${esc(it[labKey])} (n=${it.n})</text>
+      <text class="axis-t" x="${(xe+6).toFixed(1)}" y="${(y+h/2+3.5).toFixed(1)}">${it[valKey]}%</text>`;
+  });
+  return `<div class="plot-wrap"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img"
+    aria-label="구간별 인구 변화율 중앙값 막대">${g}
+    <line x1="${bx(0)}" x2="${bx(0)}" y1="${T}" y2="${H-B}" stroke="var(--line-hard)" stroke-width="1"/>
+    <text class="axis-t" x="${bx(0)}" y="${H-8}" text-anchor="middle">0%</text>
+  </svg></div>`;
+}
+
+const SCALES = {
+  dist: () => `
+    <div class="scale-head"><div class="t">① 최근접역까지의 거리<span class="pill pill-no">기각</span></div>
+      <div class="stat">Spearman ρ = ${P.dist.rho} · p = ${P.dist.p}</div></div>
+    ${scatter()}
+    <p class="read">205개 동이 그냥 흩어져 있습니다. 기울기가 보이지 않습니다.
+      ${esc(P.rule)} — ρ의 크기도 p값도 미달이라 <b>가설은 기각되었습니다.</b>
+      결과를 본 뒤 기준을 바꾸지 않았습니다. 위쪽 삼각형은 칸 밖으로 나간 다섯 개 동(최대 +376%)입니다.</p>
+    <table class="mini"><thead><tr><th>거리 5분위</th><th class="n">거리 중앙값</th><th class="n">인구 변화 중앙값</th></tr></thead><tbody>
+    ${P.quint.map(q => `<tr><td>${esc(q.k)}</td><td class="n">${q.d.toLocaleString()}m</td><td class="n">${q.med}%</td></tr>`).join("")}
+    </tbody></table>
+    <p class="read">5분위로 잘라 보면 가장 가까운 칸(−8.08%)과 가장 먼 칸(−12.61%)은 방향이 맞는데,
+      가운데 칸들이 뒤집혀 있습니다. 이래서 단조로운 관계가 안 나옵니다.</p>`,
+
+  count: () => `
+    <div class="scale-head"><div class="t">② 1km 안에 역이 몇 개인가<span class="pill pill-ok">유의</span></div>
+      <div class="stat">Spearman ρ = +${P.count.rho} · p = ${P.count.p}</div></div>
+    ${bars(P.nbBins, "med", "k", 2)}
+    <p class="read">같은 205개 동인데 <b>척도만 바꾸니 관계가 나타납니다.</b>
+      역이 하나도 없는 동네는 중앙값 −12.52%, 세 개 이상인 동네는 −6.21%로
+      <b>6.31%p</b> 차이가 납니다. 거리는 “가장 가까운 역 하나”만 보지만,
+      역 개수는 그 동네가 노선망 안에 얼마나 들어와 있는지를 봅니다.</p>
+    <p class="read">그래도 <b>0%를 넘는 칸은 하나도 없습니다.</b> 역이 세 개여도 인구는 줄었습니다.</p>`,
+
+  wide: () => `
+    <div class="scale-head"><div class="t">③ 1km 안에 역이 있는가 없는가<span class="pill pill-ok">유의</span></div>
+      <div class="stat">중앙값 ${P.wide.withMed}% 대 ${P.wide.withoutMed}% · Mann-Whitney p = ${P.wide.p}</div></div>
+    ${bars([{k:"역 있음",n:P.wide.withN,med:P.wide.withMed},{k:"역 없음",n:P.wide.withoutN,med:P.wide.withoutMed}], "med", "k", 0)}
+    <p class="read">전체로는 <b>4.73%p</b> 차이로 갈립니다. 그런데 층을 나눠 보면 이야기가 달라집니다.</p>
+    <table class="mini"><thead><tr><th>층</th><th class="n">n</th><th class="n">역세권</th><th class="n">비역세권</th><th class="n">p</th></tr></thead><tbody>
+      <tr><td>기성시가지</td><td class="n">147</td><td class="n">−6.84%</td><td class="n">−12.69%</td><td class="n">0.0032</td></tr>
+      <tr><td>원도심</td><td class="n">45</td><td class="n">−11.57%</td><td class="n">−15.91%</td><td class="n">0.1803</td></tr>
+      <tr><td>외곽신시가지</td><td class="n">13</td><td class="n" colspan="3">표본이 작아 판단 유보</td></tr>
+    </tbody></table>
+    <p class="read"><b>기성시가지에서만 갈립니다.</b> 원도심에서는 역이 있든 없든 비슷하게 줄었습니다(p = 0.180).
+      그리고 층이 만드는 차이(원도심 −12.96% 대 외곽신시가지 −3.73%, <b>9.2%p</b>)가
+      역세권 여부가 만드는 차이(4.73%p)보다 큽니다. 역보다 동네의 층이 더 셉니다.</p>`
+};
+
+function show2(key){
+  const f = SCALES[key] || SCALES.dist;
+  $("#out2").innerHTML = f();
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.sc === key));
+}
+
+/* ── 3단계 ────────────────────────────────────────────────────── */
+function miniCard(d){
+  if (!d) return `<div class="card"><h3>—</h3><div class="sub">동네를 고르세요</div></div>`;
+  const S = P.stratum[d.s];
+  return `<div class="card">
+    <h3>${esc(d.g)} ${esc(d.d)}</h3>
+    <div class="sub">${esc(d.s)} · ${d.w === 1 ? "역세권" : "비역세권"} · 1km 내 역 ${d.n}개</div>
+    <div class="facts f3">
+      <div class="fact"><div class="v">${pct(d.c)}<span class="u">%</span></div><div class="k">5년 인구 변화</div></div>
+      <div class="fact"><div class="v">${d.m.toLocaleString()}<span class="u">m</span></div><div class="k">최근접역 거리</div></div>
+      <div class="fact"><div class="v">${S ? S.med : "—"}<span class="u">%</span></div><div class="k">이 층의 중앙값</div></div>
+    </div></div>`;
+}
+
+function show3(a, b){
+  $("#out3").innerHTML = miniCard(a) + miniCard(b);
+  if (!a || !b){ $("#gap3").innerHTML = "두 동네를 고르면 거리 차이와 인구 변화 차이를 견줘 줍니다."; return; }
+  const dm = Math.abs(a.m - b.m), dc = Math.abs(a.c - b.c);
+  const near = dm <= 150;
+  $("#gap3").innerHTML = `
+    <p>역까지 거리는 <b>${a.m.toLocaleString()}m</b> 대 <b>${b.m.toLocaleString()}m</b> —
+      차이 <b>${dm.toLocaleString()}m</b>${near ? " (거의 같습니다)" : ""}.
+      그런데 5년 인구 변화는 <b>${pct(a.c)}%</b> 대 <b>${pct(b.c)}%</b> — 차이 <b>${dc.toFixed(2)}%p</b>입니다.</p>
+    <p>${a.s === b.s
+      ? `두 동네는 같은 <b>${esc(a.s)}</b> 층입니다. 같은 층·비슷한 거리인데도 이만큼 벌어집니다. 거리로 설명되지 않는 몫이 그만큼 크다는 뜻입니다.`
+      : `두 동네는 층이 다릅니다 — <b>${esc(a.s)}</b>(중앙값 ${P.stratum[a.s] ? P.stratum[a.s].med : "—"}%) 대 <b>${esc(b.s)}</b>(중앙값 ${P.stratum[b.s] ? P.stratum[b.s].med : "—"}%). 논문이 말한 대로, 역까지 거리보다 어느 층의 동네인지가 더 크게 갈랐습니다.`}</p>`;
+}
+
+/* 거리가 가까운데 변화가 반대인 짝 — 논문 [5]의 두 목록에서 고른다 */
+const PAIRS = [["범일2동","범일5동"],["남포동","동광동"],["복산동","온천2동"],["서2동","대저1동"],["반송1동","우암동"],["초장동","암남동"]];
+let pi = 0;
+
+/* ── 시작 ─────────────────────────────────────────────────────── */
+(function init(){
+  $("#dongs").innerHTML = DONG.map(d => `<option value="${esc(d.d)}">${esc(d.g)}</option>`).join("");
+
+  const safe1 = raw => {
+    const d = findDong(raw);
+    if (d){ $("#m1").textContent = ""; show1(d); return; }
+    const s = suggest(raw);
+    $("#m1").textContent = raw.trim()
+      ? `“${raw.trim()}”은 부산 205개 행정동에 없습니다.` + (s.length ? ` 혹시 이건가요 — ${s.join(", ")}` : " 목록에서 골라 보세요.")
+      : "";
+  };
+  $("#q1").addEventListener("input", e => safe1(e.target.value));
+
+  $("#rand").addEventListener("click", () => {
+    const d = DONG[Math.floor(Math.random() * DONG.length)];
+    $("#q1").value = d.d; $("#m1").textContent = ""; show1(d);
+  });
+
+  document.querySelectorAll(".tabs button").forEach(b =>
+    b.addEventListener("click", () => show2(b.dataset.sc)));
+
+  const safe3 = () => {
+    const a = findDong($("#qa").value), b = findDong($("#qb").value);
+    const bad = [];
+    if ($("#qa").value.trim() && !a) bad.push(`“${$("#qa").value.trim()}”`);
+    if ($("#qb").value.trim() && !b) bad.push(`“${$("#qb").value.trim()}”`);
+    $("#m3").textContent = bad.length ? `${bad.join(", ")} — 그런 행정동은 없습니다. 나머지는 그대로 보여 줍니다.` : "";
+    show3(a, b);
+  };
+  $("#qa").addEventListener("input", safe3);
+  $("#qb").addEventListener("input", safe3);
+
+  $("#findpair").addEventListener("click", () => {
+    const [x, y] = PAIRS[pi % PAIRS.length]; pi++;
+    $("#qa").value = x; $("#qb").value = y; safe3();
+  });
+
+  /* 처음부터 내용이 차 있게 */
+  $("#q1").value = "반송1동"; safe1("반송1동");
+  show2("dist");
+  $("#qa").value = PAIRS[0][0]; $("#qb").value = PAIRS[0][1]; pi = 1; safe3();
+})();
+</script>
+</body>
+</html>
